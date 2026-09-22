@@ -13,6 +13,7 @@ class StudentBase(BaseModel):
 
 
 class StudentCreate(StudentBase):
+    id: str
     birth_date: date # PDPA
 
 
@@ -55,3 +56,20 @@ class ClassroomRead(ClassroomBase):
 
 class ClassroomCreate(ClassroomBase):
     homeroom_teacher_id: UUID
+
+class EnrollmentBase(BaseModel):
+    student_in_class_number: int = Field(ge=1, description="เลขที่ของนักเรียนในห้อง")
+    start_date: datetime = Field(default_factory=datetime.now, description="วันที่เร่ิมเข้าเรียน")
+    end_date: datetime | None = None
+
+class EnrollmentCreate(EnrollmentBase):
+    student_id: str
+    classroom_id: UUID
+
+class EnrollmentRead(EnrollmentBase):
+    model_config =ConfigDict(from_attributes=True)
+
+    id : UUID
+    student_id: str
+    classroom_id: UUID
+    student: StudentRead

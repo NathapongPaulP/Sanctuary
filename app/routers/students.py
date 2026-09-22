@@ -22,7 +22,7 @@ async def create_students(
 ):
     students = [
         Student(
-            id=uuid4(),
+            id=item.id,
             first_name=item.first_name,
             last_name=item.last_name,
             nickname=item.nickname,
