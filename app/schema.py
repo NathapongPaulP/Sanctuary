@@ -50,7 +50,7 @@ class ClassroomRead(ClassroomBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    homeroom_teacher: TeacherRead
+    teacher: TeacherRead
 
 
 class ClassroomCreate(ClassroomBase):
