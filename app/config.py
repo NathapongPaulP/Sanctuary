@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     )
 
     DATABASE_URL: str
+    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
 
 settings = Settings()

@@ -78,3 +78,16 @@ class EnrollmentRead(EnrollmentBase):
     student_id: str
     classroom_id: UUID
     student: StudentRead
+
+
+class SubjectBase(BaseModel):
+    code: str
+    name: str
+
+
+class SubjectCreate(SubjectBase):
+    pass
+
+
+class SubjectRead(SubjectBase):
+    id: UUID
