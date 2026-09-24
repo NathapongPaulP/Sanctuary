@@ -197,7 +197,7 @@ class ClassSubject(Base):
 class Timetable(Base):
     __tablename__ = "timetable"
     __table_args__ = (
-        CheckConstraint("day_of_week BETWEEN 1 AND 5"),  # 1=Mon ... 5=Fri
+        CheckConstraint("day_of_the_week BETWEEN 1 AND 5"),  # 1=Mon ... 5=Fri
         CheckConstraint("end_time > start_time"),
     )
 
@@ -207,7 +207,7 @@ class Timetable(Base):
         ForeignKey("class_subject.id", ondelete="CASCADE"),
         nullable=False,
     )
-    day_of_week = Column(Integer, nullable=False)
+    day_of_the_week = Column(Integer, nullable=False)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
     room = Column(String(10))

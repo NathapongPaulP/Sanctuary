@@ -1,7 +1,7 @@
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
-from app.db import Sex, Status
-from datetime import date
+from app.db import Sex
+from datetime import date, time
 
 
 class StudentBase(BaseModel):
@@ -90,4 +90,41 @@ class SubjectCreate(SubjectBase):
 
 
 class SubjectRead(SubjectBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+
+
+class ClassSubjectBase(BaseModel):
+    classroom_id: UUID
+    subject_id: UUID
+    teacher_id: UUID
+    term: int
+
+
+class ClassSubjectCreate(ClassSubjectBase):
+    pass
+
+
+class ClassSubjectRead(ClassSubjectBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+
+
+class TimeTableBase(BaseModel):
+    class_subject_id: UUID
+    day_of_the_week: int
+    start_time: time
+    end_time: time
+    room: str | None = None
+
+
+class TimeTableCreate(TimeTableBase):
+    pass
+
+
+class TimeTableRead(TimeTableBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
