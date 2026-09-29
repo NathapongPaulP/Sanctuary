@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
 from sqlalchemy.orm import selectinload
-from app.db import Classroom, get_async_session
+from app.db import Classroom, Teacher, get_async_session
 from app.schema import ClassroomRead, ClassroomCreate
 from uuid import uuid4
 
@@ -13,15 +13,13 @@ router = APIRouter(prefix="/classrooms", tags=["classrooms"])
 async def get_classrooms(
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.execute(
-        select(Classroom).options(selectinload(Classroom.teacher))
-    )
-    return result.scalars().all()
+    result = await session.exec(select(Classroom))
+    return result.all()
+
 
 @router.post("", response_model=list[ClassroomRead], status_code=201)
 async def create_classrooms(
-    data: list[ClassroomCreate],
-    session: AsyncSession = Depends(get_async_session)
+    data: list[ClassroomCreate], session: AsyncSession = Depends(get_async_session)
 ):
     classrooms = [
         Classroom(
@@ -42,5 +40,3 @@ async def create_classrooms(
         await session.refresh(c, attribute_names=["teacher"])
 
     return classrooms
-
-

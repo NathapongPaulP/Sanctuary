@@ -1,7 +1,7 @@
 from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
 from app.db import Enrollment, get_async_session, Classroom
@@ -11,24 +11,23 @@ router = APIRouter(prefix="/enrollments", tags=["enrollments"])
 
 @router.get("", response_model=list[EnrollmentRead])
 async def get_students_in_classroom(
-    grade: int,
-    section: int,
+    grade: int | None = None,
+    section: int | None = None,
     academic_year: int = 2569,
     session: AsyncSession = Depends(get_async_session),
 ):
     query = (
         select(Enrollment)
         .join(Classroom)
-        .where(
-            Classroom.grade == grade,
-            Classroom.section == section,
-            Classroom.academic_year == academic_year,
-        )
-        .options(selectinload(Enrollment.student))
-        .order_by(Enrollment.student_in_class_number)
+        .where(Classroom.academic_year == academic_year)
+        .order_by(Enrollment.classroom_id, Enrollment.student_in_class_number)
     )
-    result = await session.execute(query)
-    return result.scalars().all()
+    if grade is not None:
+        query = query.where(Classroom.grade == grade)
+    if section is not None:
+        query = query.where(Classroom.section == section)
+    result = await session.exec(query)
+    return result.all()
 
 @router.post("", response_model=list[EnrollmentRead], status_code=201)
 async def create_enrollments(

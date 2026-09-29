@@ -51,7 +51,7 @@ class ClassroomRead(ClassroomBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    teacher: TeacherRead
+    homeroom_teacher_id: UUID
 
 
 class ClassroomCreate(ClassroomBase):
@@ -77,7 +77,7 @@ class EnrollmentRead(EnrollmentBase):
     id: UUID
     student_id: str
     classroom_id: UUID
-    student: StudentRead
+    student_id: str
 
 
 class SubjectBase(BaseModel):
@@ -128,3 +128,35 @@ class TimeTableRead(TimeTableBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+
+
+class NextSession(BaseModel):
+    day: int = Field(ge=1, le=5)
+    start_time: time
+    is_today: bool
+
+
+class ClassPageData(BaseModel):
+    """
+    TODO: worksheet
+    current_worksheet: str
+    worksheet_missing: int
+    worksheet_waiting_to_be_grade: int
+    attention_required: AttentionRequired
+    """
+    grade: int
+    section: int
+    academic_year: int
+    number_of_students: int
+    next_session: NextSession | None = None
+    subject: str
+
+
+class TeacherAppropriateData(BaseModel):
+    homeroom_class: ClassPageData | None = None
+    teaching_class: list[ClassPageData]
+
+
+class CardData(BaseModel):
+    teacher_id: UUID
+    teacher_appropriate_data: TeacherAppropriateData

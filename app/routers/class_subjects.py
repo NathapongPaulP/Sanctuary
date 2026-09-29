@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
 from app.db import ClassSubject, get_async_session
 from app.schema import ClassSubjectCreate, ClassSubjectRead
 from uuid import uuid4
@@ -10,9 +10,9 @@ router = APIRouter(prefix="/class_subjects", tags=["class_subjects"])
 
 @router.get("", response_model=list[ClassSubjectRead])
 async def get_class_subjects(session: AsyncSession = Depends(get_async_session)):
-    results = await session.execute(select(ClassSubject))
+    results = await session.exec(select(ClassSubject))
 
-    return results.scalars().all()
+    return results.all()
 
 
 @router.post("", response_model=list[ClassSubjectRead], status_code=201)

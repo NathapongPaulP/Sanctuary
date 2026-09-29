@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
 from app.db import Timetable, get_async_session
 from app.schema import TimeTableCreate, TimeTableRead
 from uuid import uuid4
@@ -10,9 +10,9 @@ router = APIRouter(prefix="/timetables", tags=["time_tables"])
 
 @router.get("", response_model=list[TimeTableRead])
 async def get_time_tables(session: AsyncSession = Depends(get_async_session)):
-    results = await session.execute(select(Timetable))
+    results = await session.exec(select(Timetable))
 
-    return results.scalars().all()
+    return results.all()
 
 
 @router.post("", response_model=list[TimeTableRead], status_code=201)
@@ -22,6 +22,7 @@ async def create_time_tables(
     time_tables = [
         Timetable(
             id=uuid4(),
+            class_subject_id=item.class_subject_id,
             day_of_the_week=item.day_of_the_week,
             start_time=item.start_time,
             end_time=item.end_time,

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
 from app.db import Teacher, get_async_session
 from app.schema import TeacherRead, TeacherCreate
 from uuid import uuid4
@@ -12,8 +12,8 @@ router = APIRouter(prefix="/teachers", tags=["teachers"])
 async def get_teachers(
     session: AsyncSession = Depends(get_async_session),
 ) -> list[TeacherRead]:
-    results = await session.execute(select(Teacher))
-    return results.scalars().all()
+    results = await session.exec(select(Teacher))
+    return results.all()
 
 
 @router.post("", response_model=list[TeacherRead], status_code=201)
