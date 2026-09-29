@@ -144,6 +144,7 @@ class ClassPageData(BaseModel):
     worksheet_waiting_to_be_grade: int
     attention_required: AttentionRequired
     """
+    class_subject_id: UUID
     grade: int
     section: int
     academic_year: int
@@ -153,7 +154,7 @@ class ClassPageData(BaseModel):
 
 
 class TeacherAppropriateData(BaseModel):
-    homeroom_class: ClassPageData | None = None
+    homeroom_class: list[ClassPageData] | None = None
     teaching_class: list[ClassPageData]
 
 

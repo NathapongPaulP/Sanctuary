@@ -4,14 +4,19 @@ Wipe the database and fill it with realistic fake data.
     uv run python seed.py
 
 - 21 classrooms (ป.1-ป.3: 4 sections, ป.4-ป.6: 3 sections), ~35 students each
-- Every teacher teaches exactly one subject, across several rooms
-- 21 of them are also homeroom teacher of one of the rooms they teach
+- Each room has its own homeroom teacher. In ป.1-ป.3 they teach ภาษาไทย and
+  คณิตศาสตร์ in their room (sometimes one more subject); in ป.4-ป.6 at least one
+  core subject. The grade's other homeroom subjects are shared among its homeroom
+  teachers; specialists cover English, PE and art. Every teacher has 20-25 periods.
 - Clash-free weekly timetable (no teacher or room double-booked)
-- Attendance for the last few school days
+- Attendance for the last 20 school days, decided per student per day: ขาด and
+  ลาป่วย cover the whole day (ลาป่วย often runs 2-3 days), สาย only the first
+  period. 1-3 students per room start missing school in the last 1-2 weeks.
+- A few students transferred out mid-term and a few transferred in recently
+- Ids come from the seeded generator, so every run gives the same ids
 """
 
 import asyncio
-import math
 import random
 import uuid
 from collections import defaultdict
@@ -42,11 +47,21 @@ random.seed(42)
 ACADEMIC_YEAR = 2569
 TERM = 1
 TERM_START = date(2026, 5, 18)
-ATTENDANCE_DAYS = 3  # how many past school days get attendance records
+ATTENDANCE_DAYS = 20  # how many past school days get attendance records
 TZ = ZoneInfo("Asia/Bangkok")
 
 SECTIONS_PER_GRADE = {1: 4, 2: 4, 3: 4, 4: 3, 5: 3, 6: 3}
 STUDENTS_PER_ROOM = (33, 37)
+AT_RISK_PER_ROOM = (1, 3)
+TRANSFER_ROOMS = 4  # rooms with a student moving out, and as many with one moving in
+TRANSFER_OUT_DAYS_AGO = (5, 12)  # school days
+TRANSFER_IN_DAYS_AGO = (2, 4)
+# subjects taught by the grade's homeroom teachers; the rest go to specialists
+HOMEROOM_SUBJECTS = ["thai", "math", "science", "social", "history", "career"]
+CORE_SUBJECTS = ["thai", "math", "science", "social"]
+SPECIALIST_SUBJECTS = ["english", "pe", "art"]
+TARGET_LOAD = 22  # periods per week a specialist aims for
+MIN_LOAD, MAX_LOAD = 20, 25
 
 PERIODS = [
     (time(8, 30), time(9, 20)),
@@ -58,17 +73,17 @@ PERIODS = [
 ]
 SLOTS = [(day, p) for day in range(1, 6) for p in range(len(PERIODS))]
 
-# key: (code prefix, name, periods per week, max rooms per teacher)
+# key: (code prefix, name, periods per week)
 SUBJECTS = {
-    "thai": ("ท", "ภาษาไทย", 5, 4),
-    "math": ("ค", "คณิตศาสตร์", 5, 4),
-    "science": ("ว", "วิทยาศาสตร์และเทคโนโลยี", 4, 5),
-    "social": ("ส", "สังคมศึกษา ศาสนา และวัฒนธรรม", 3, 7),
-    "history": ("ส", "ประวัติศาสตร์", 2, 10),
-    "pe": ("พ", "สุขศึกษาและพลศึกษา", 3, 7),
-    "art": ("ศ", "ศิลปะ", 2, 10),
-    "career": ("ง", "การงานอาชีพ", 2, 10),
-    "english": ("อ", "ภาษาอังกฤษ", 4, 5),
+    "thai": ("ท", "ภาษาไทย", 5),
+    "math": ("ค", "คณิตศาสตร์", 5),
+    "science": ("ว", "วิทยาศาสตร์และเทคโนโลยี", 4),
+    "social": ("ส", "สังคมศึกษา ศาสนา และวัฒนธรรม", 3),
+    "history": ("ส", "ประวัติศาสตร์", 2),
+    "pe": ("พ", "สุขศึกษาและพลศึกษา", 3),
+    "art": ("ศ", "ศิลปะ", 2),
+    "career": ("ง", "การงานอาชีพ", 2),
+    "english": ("อ", "ภาษาอังกฤษ", 4),
 }
 # subjects sharing a code prefix need different course numbers
 CODE_SUFFIX = {"history": "102"}
@@ -99,7 +114,7 @@ TABLES = [
 
 
 def new_id():
-    return uuid.uuid4()
+    return uuid.UUID(int=random.getrandbits(128), version=4)
 
 
 def make_teacher():
@@ -117,11 +132,12 @@ def make_phone():
 
 def build():
     data = defaultdict(list)
+    school_days = last_school_days(ATTENDANCE_DAYS)
 
     # ---------- subjects ----------
     subject_id = {}  # (grade, key) -> id
     for grade in SECTIONS_PER_GRADE:
-        for key, (prefix, name, _periods, _max_rooms) in SUBJECTS.items():
+        for key, (prefix, name, _periods) in SUBJECTS.items():
             sid = new_id()
             subject_id[(grade, key)] = sid
             data["subject"].append({
@@ -130,20 +146,27 @@ def build():
                 "name": f"{name} ป.{grade}",
             })
 
-    # ---------- classrooms (homeroom teacher is picked further down) ----------
+    # ---------- classrooms, each with its own homeroom teacher ----------
     rooms = []  # dicts from data["classroom"]
     for grade, n_sections in SECTIONS_PER_GRADE.items():
         for section in range(1, n_sections + 1):
-            room = {"id": new_id(), "homeroom_teacher_id": None, "grade": grade,
+            teacher = make_teacher()
+            data["teacher"].append(teacher)
+            room = {"id": new_id(), "homeroom_teacher_id": teacher["id"], "grade": grade,
                     "section": section, "academic_year": ACADEMIC_YEAR,
                     "room": f"{grade}0{section}"}
             data["classroom"].append(room)
             rooms.append(room)
 
-    # ---------- teachers: one subject each, rooms split evenly between them ----------
+    # ---------- homeroom subjects: shared among the grade's homeroom teachers ----------
     teacher_for = {}  # (room id, key) -> teacher id
-    for key, (_prefix, _name, _periods, max_rooms) in SUBJECTS.items():
-        n_teachers = math.ceil(len(rooms) / max_rooms)
+    for grade in SECTIONS_PER_GRADE:
+        teacher_for.update(assign_homeroom_subjects([r for r in rooms if r["grade"] == grade]))
+
+    # ---------- specialists: one subject each, rooms split evenly between them ----------
+    for key in SPECIALIST_SUBJECTS:
+        periods = SUBJECTS[key][2]
+        n_teachers = max(1, round(len(rooms) * periods / TARGET_LOAD))
         teachers = [make_teacher() for _ in range(n_teachers)]
         data["teacher"].extend(teachers)
         for i, room in enumerate(rooms):
@@ -152,54 +175,115 @@ def build():
     # ---------- class subjects ----------
     lessons_by_room = defaultdict(list)  # room id -> [(class_subject row, periods, key)]
     for room in rooms:
-        for key, (_prefix, _name, periods, _max_rooms) in SUBJECTS.items():
+        for key, (_prefix, _name, periods) in SUBJECTS.items():
             cs = {"id": new_id(), "classroom_id": room["id"],
                   "subject_id": subject_id[(room["grade"], key)],
                   "teacher_id": teacher_for[(room["id"], key)], "term": TERM}
             data["class_subject"].append(cs)
             lessons_by_room[room["id"]].append((cs, periods, key))
 
-    # ---------- homeroom: each room gets a different teacher who teaches in it ----------
-    teachers_in = [[cs["teacher_id"] for cs, _p, _k in lessons_by_room[r["id"]]] for r in rooms]
-    for i, teacher_id in bipartite_match(teachers_in).items():
-        rooms[i]["homeroom_teacher_id"] = teacher_id
-
     # ---------- timetable ----------
     data["timetable"] = build_timetable(rooms, lessons_by_room)
 
     # ---------- students, guardians, enrollments ----------
+    next_seq = {}  # grade -> next running number for student ids
+    enrollments_in = defaultdict(list)  # room id -> enrollment rows
     for grade, n_sections in SECTIONS_PER_GRADE.items():
-        id_prefix = str(ACADEMIC_YEAR - 2500 - (grade - 1))  # year they entered ป.1
         seq = 1
         for section in range(1, n_sections + 1):
             room = next(r for r in rooms if r["grade"] == grade and r["section"] == section)
             students = []
             for _ in range(random.randint(*STUDENTS_PER_ROOM)):
-                sex = random.choice([Sex.M, Sex.F])
-                male = sex == Sex.M
-                students.append({
-                    "id": f"{id_prefix}{seq:03d}",
-                    "first_name": random.choice(MALE_NAMES if male else FEMALE_NAMES),
-                    "last_name": random.choice(LAST_NAMES),
-                    "nickname": random.choice(MALE_NICKNAMES if male else FEMALE_NICKNAMES),
-                    "sex": sex,
-                    "birth_date": date(2020 - grade, 1, 1) + timedelta(days=random.randint(0, 364)),
-                    "photo": None,
-                })
+                students.append(make_student(grade, seq))
                 seq += 1
             # Thai class numbers: boys first, then girls, each by first name
             students.sort(key=lambda s: (s["sex"] != Sex.M, s["first_name"]))
             for number, student in enumerate(students, start=1):
-                data["student"].append(student)
-                data["enrollment"].append({
-                    "id": new_id(), "student_id": student["id"], "classroom_id": room["id"],
-                    "student_in_class_number": number, "start_date": TERM_START, "end_date": None,
-                })
-                add_guardians(data, student)
+                enroll(data, enrollments_in, student, room, number, TERM_START)
+        next_seq[grade] = seq
+
+    # ---------- students who start missing school in the last 1-2 weeks ----------
+    at_risk = {}  # student id -> (first bad day, status weights from then on)
+    for room in rooms:
+        for e in random.sample(enrollments_in[room["id"]], random.randint(*AT_RISK_PER_ROOM)):
+            late, absent = random.choice([(30, 10), (10, 30), (20, 20)])
+            at_risk[e["student_id"]] = (school_days[-random.choice([5, 10])],
+                                        [100 - late - absent - 3, late, absent, 2, 1])
+
+    # ---------- transfers: out mid-term, in recently ----------
+    transfer_rooms = random.sample(rooms, TRANSFER_ROOMS * 2)
+    for room in transfer_rooms[:TRANSFER_ROOMS]:
+        regulars = [e for e in enrollments_in[room["id"]] if e["student_id"] not in at_risk]
+        random.choice(regulars)["end_date"] = school_days[-random.randint(*TRANSFER_OUT_DAYS_AGO)]
+    for room in transfer_rooms[TRANSFER_ROOMS:]:
+        grade = room["grade"]
+        student = make_student(grade, next_seq[grade])
+        next_seq[grade] += 1
+        number = len(enrollments_in[room["id"]]) + 1
+        start = school_days[-random.randint(*TRANSFER_IN_DAYS_AGO)]
+        enroll(data, enrollments_in, student, room, number, start)
 
     # ---------- attendance ----------
-    build_attendance(data)
+    build_attendance(data, school_days, at_risk)
     return data
+
+
+def make_student(grade, seq):
+    id_prefix = str(ACADEMIC_YEAR - 2500 - (grade - 1))  # year they entered ป.1
+    sex = random.choice([Sex.M, Sex.F])
+    male = sex == Sex.M
+    return {
+        "id": f"{id_prefix}{seq:03d}",
+        "first_name": random.choice(MALE_NAMES if male else FEMALE_NAMES),
+        "last_name": random.choice(LAST_NAMES),
+        "nickname": random.choice(MALE_NICKNAMES if male else FEMALE_NICKNAMES),
+        "sex": sex,
+        "birth_date": date(2020 - grade, 1, 1) + timedelta(days=random.randint(0, 364)),
+        "photo": None,
+    }
+
+
+def enroll(data, enrollments_in, student, room, number, start):
+    data["student"].append(student)
+    enrollment = {
+        "id": new_id(), "student_id": student["id"], "classroom_id": room["id"],
+        "student_in_class_number": number, "start_date": start, "end_date": None,
+    }
+    data["enrollment"].append(enrollment)
+    enrollments_in[room["id"]].append(enrollment)
+    add_guardians(data, student)
+
+
+def assign_homeroom_subjects(grade_rooms, attempts=200):
+    """Homeroom teachers keep their core subjects; the grade's other homeroom lessons
+    go to the least-loaded homeroom teacher of another room. Retry until every load
+    is within MIN_LOAD..MAX_LOAD."""
+    for _ in range(attempts):
+        teacher_for, load, rest = {}, defaultdict(int), []
+        for room in grade_rooms:
+            if room["grade"] <= 3:
+                others = [k for k in HOMEROOM_SUBJECTS if k not in ("thai", "math")]
+                own = ["thai", "math"] + random.sample(others, random.randint(0, 1))
+            else:
+                own = random.sample(CORE_SUBJECTS, random.randint(1, 2))
+            for key in HOMEROOM_SUBJECTS:
+                if key in own:
+                    teacher_for[(room["id"], key)] = room["homeroom_teacher_id"]
+                    load[room["homeroom_teacher_id"]] += SUBJECTS[key][2]
+                else:
+                    rest.append((room, key))
+
+        random.shuffle(rest)
+        rest.sort(key=lambda lesson: -SUBJECTS[lesson[1]][2])  # biggest first
+        for room, key in rest:
+            teachers = [r["homeroom_teacher_id"] for r in grade_rooms if r is not room]
+            teacher_id = min(teachers, key=lambda t: (load[t], random.random()))
+            teacher_for[(room["id"], key)] = teacher_id
+            load[teacher_id] += SUBJECTS[key][2]
+
+        if all(MIN_LOAD <= load[r["homeroom_teacher_id"]] <= MAX_LOAD for r in grade_rooms):
+            return teacher_for
+    raise RuntimeError("could not balance homeroom teacher loads")
 
 
 def add_guardians(data, student):
@@ -296,14 +380,38 @@ def last_school_days(n):
     return sorted(days)
 
 
-def build_attendance(data):
-    students_in = defaultdict(list)
-    for e in data["enrollment"]:
-        students_in[e["classroom_id"]].append(e["student_id"])
+NORMAL_WEIGHTS = [96, 1.5, 0.5, 1.5, 0.5]  # present, late, absent, sick leave, personal leave
+STATUSES = [Status.present, Status.late, Status.absent, Status.sick_leave, Status.personal_leave]
 
-    statuses = [Status.present, Status.late, Status.absent, Status.sick_leave, Status.personal_leave]
-    weights = [90, 4, 3, 2, 1]
-    for day in last_school_days(ATTENDANCE_DAYS):
+
+def daily_statuses(e, school_days, at_risk):
+    """One status per school day the student is enrolled; sick leave runs 1-3 days."""
+    risk_from, risk_weights = at_risk.get(e["student_id"], (None, None))
+    statuses, sick_days_left = {}, 0
+    for day in school_days:
+        if e["start_date"] > day or (e["end_date"] and e["end_date"] < day):
+            continue
+        if sick_days_left:
+            status, sick_days_left = Status.sick_leave, sick_days_left - 1
+        else:
+            weights = risk_weights if risk_from and day >= risk_from else NORMAL_WEIGHTS
+            status = random.choices(STATUSES, weights)[0]
+            if status == Status.sick_leave:
+                sick_days_left = random.choice([0, 1, 1, 2])
+        statuses[day] = status
+    return statuses
+
+
+def build_attendance(data, school_days, at_risk):
+    enrollments_in = defaultdict(list)
+    status_on = {}  # (student id, day) -> status for the whole day
+    for e in data["enrollment"]:
+        enrollments_in[e["classroom_id"]].append(e)
+        for day, status in daily_statuses(e, school_days, at_risk).items():
+            status_on[(e["student_id"], day)] = status
+
+    first_period = PERIODS[0][0]
+    for day in school_days:
         for slot in data["timetable"]:
             if slot["day_of_the_week"] != day.isoweekday():
                 continue
@@ -311,8 +419,13 @@ def build_attendance(data):
             session = {"id": new_id(), "timetable_id": slot["id"], "teacher_id": slot["_teacher_id"],
                        "date": day, "recorded_at": recorded}
             data["attendance_session"].append(session)
-            for student_id in students_in[slot["_classroom_id"]]:
-                status = random.choices(statuses, weights)[0]
+            for e in enrollments_in[slot["_classroom_id"]]:
+                student_id = e["student_id"]
+                status = status_on.get((student_id, day))
+                if status is None:  # not enrolled that day
+                    continue
+                if status == Status.late and slot["start_time"] != first_period:
+                    status = Status.present
                 data["attendance"].append({
                     "id": new_id(), "session_id": session["id"], "student_id": student_id,
                     "status": status, "note": "ไข้หวัด" if status == Status.sick_leave else None,

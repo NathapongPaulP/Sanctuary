@@ -1,77 +1,10 @@
-"""
-{
-    teacher_id:,
-    techer_appropriate_data:
-    {
-        homeroom_class: {
-            grade:,
-            section:,
-            academic_year:,
-            current_worksheet:,
-            number_of_students:,
-            day:(1-5 = mon-fri with exception of if it's today return today),
-            start_time:,
-            worksheet_mising:,
-            worksheet_waiting_to_be_grade:,
-            class_subject:,
-            should_pay_more_attention: (for student who are doing bad and should be checked on),
-        },
-        teaching_class: [
-            {
-                grade:,
-                section:,
-                academic_year:,
-                current_worksheet:,
-                number_of_students:,
-                day:(1-5 = mon-fri with exception of if it's today return today),
-                start_time:,
-                worksheet_mising:,
-                worksheet_waiting_to_be_grade:,
-                class_subject:,
-                should_pay_more_attention: (for student who are doing bad and should be checked on),
-            },
-                    {
-                grade:,
-                section:,
-                academic_year:,
-                current_worksheet:,
-                number_of_students:,
-                day:(1-5 = mon-fri with exception of if it's today return today),
-                start_time:,
-                worksheet_mising:,
-                worksheet_waiting_to_be_grade:,
-                class_subject:,
-                should_pay_more_attention: (for student who are doing bad and should be checked on),
-            },
-                    {
-                grade:,
-                section:,
-                academic_year:,
-                current_worksheet:,
-                number_of_students:,
-                day:(1-5 = mon-fri with exception of if it's today return today),
-                start_time:,
-                worksheet_mising:,
-                worksheet_waiting_to_be_grade:,
-                class_subject:,
-                should_pay_more_attention: (for student who are doing bad and should be checked on),
-            },
-            .
-            .
-            .
-        ]
-    },
-}
-"""
-
 from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import func, select
+from sqlmodel import func, select, or_
 from app.db import (
     get_async_session,
     Classroom,
-    Teacher,
     Enrollment,
     ClassSubject,
     Subject,
@@ -81,6 +14,7 @@ from app.schema import NextSession, ClassPageData, TeacherAppropriateData, CardD
 from collections import defaultdict
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from app.config import current_year_and_term
 
 router = APIRouter(prefix="/class_cards", tags=["class_cards"])
 
@@ -93,11 +27,19 @@ def minutes_since_monday(day, t):
 async def get_class_page_data(
     teacher_id: UUID, session: AsyncSession = Depends(get_async_session)
 ):
+
+    now = datetime.now(ZoneInfo("Asia/Bangkok"))
+    today = now.date()
+
+    current_academic_year, current_term = current_year_and_term()
+    
     number_of_students_sq = (
         select(
             Enrollment.classroom_id,
             func.count().label("number_of_students"),
         )
+        .where(or_(Enrollment.end_date.is_(None), Enrollment.end_date >= today))
+        .where(Enrollment.start_date <= today)
         .group_by(Enrollment.classroom_id)
         .subquery()
     )
@@ -121,6 +63,8 @@ async def get_class_page_data(
             number_of_students_sq, number_of_students_sq.c.classroom_id == Classroom.id
         )
         .where(ClassSubject.teacher_id == teacher_id)
+        .where(Classroom.academic_year == current_academic_year)
+        .where(ClassSubject.term == current_term)
     )
 
     rows = (await session.exec(stmt)).mappings().all()
@@ -131,7 +75,6 @@ async def get_class_page_data(
     slots_by_cs = defaultdict(list)
     for slot in slots:
         slots_by_cs[slot.class_subject_id].append(slot)
-    now = datetime.now(ZoneInfo("Asia/Bangkok"))
     now_min = minutes_since_monday(now.isoweekday(), now)
 
     def minutes_away(slot):
@@ -149,12 +92,12 @@ async def get_class_page_data(
             and minutes_away(nxt) < 24 * 60,
         )
 
-    homeroom = None
+    homeroom = []
     teaching = []
     for row in rows:
         card = ClassPageData(**row, next_session=next_by_cs.get(row["class_subject_id"]))
         if row["is_homeroom"]:
-            homeroom = card
+            homeroom.append(card)
         else:
             teaching.append(card)
 

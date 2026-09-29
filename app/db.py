@@ -216,6 +216,11 @@ class Attendance(SQLModel, table=True):
     session: AttendanceSession = Relationship(back_populates="attendances")
     student: Student = Relationship(back_populates="attendances")
 
+# ---------- Wating to be sorted ----------
+
+
+
+# ---------- Wating to be sorted ----------
 
 # ---------- Engine & session ----------
 
