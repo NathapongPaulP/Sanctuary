@@ -22,7 +22,7 @@ async def create_class_subjects(
     class_subjects = [
         ClassSubject(
             id=uuid4(),
-            classroom_id = item.classroom_id,
+            classroom_id=item.classroom_id,
             subject_id=item.subject_id,
             teacher_id=item.teacher_id,
             term=item.term,

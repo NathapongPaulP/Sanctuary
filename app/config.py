@@ -19,7 +19,7 @@ settings = Settings()
 
 
 BANGKOK = ZoneInfo("Asia/Bangkok")
-TERM_1_START = (5, 14)   # (month, day)
+TERM_1_START = (5, 14)  # (month, day)
 TERM_2_START = (11, 1)
 
 

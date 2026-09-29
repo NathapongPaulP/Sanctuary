@@ -1,7 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import class_card, class_subjects, teachers, students, classrooms, enrollments, subjects, time_tables
+from app.routers import (
+    class_card,
+    class_subjects,
+    teachers,
+    students,
+    classrooms,
+    enrollments,
+    subjects,
+    time_tables,
+)
 
 
 app = FastAPI()

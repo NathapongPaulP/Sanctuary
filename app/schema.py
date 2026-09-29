@@ -60,9 +60,7 @@ class ClassroomCreate(ClassroomBase):
 
 class EnrollmentBase(BaseModel):
     student_in_class_number: int = Field(ge=1, description="เลขที่ของนักเรียนในห้อง")
-    start_date: date = Field(
-        default_factory=date.today, description="วันที่เริ่มเข้าเรียน"
-    )
+    start_date: date = Field(default_factory=date.today, description="วันที่เริ่มเข้าเรียน")
     end_date: date | None = None
 
 
@@ -144,6 +142,7 @@ class ClassPageData(BaseModel):
     worksheet_waiting_to_be_grade: int
     attention_required: AttentionRequired
     """
+
     class_subject_id: UUID
     grade: int
     section: int

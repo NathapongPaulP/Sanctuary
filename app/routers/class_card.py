@@ -32,7 +32,7 @@ async def get_class_page_data(
     today = now.date()
 
     current_academic_year, current_term = current_year_and_term()
-    
+
     number_of_students_sq = (
         select(
             Enrollment.classroom_id,
@@ -54,7 +54,7 @@ async def get_class_page_data(
                 "number_of_students"
             ),
             Subject.name.label("subject"),
-            (Classroom.homeroom_teacher_id == teacher_id).label("is_homeroom")
+            (Classroom.homeroom_teacher_id == teacher_id).label("is_homeroom"),
         )
         .select_from(ClassSubject)
         .join(Classroom, Classroom.id == ClassSubject.classroom_id)
@@ -95,12 +95,18 @@ async def get_class_page_data(
     homeroom = []
     teaching = []
     for row in rows:
-        card = ClassPageData(**row, next_session=next_by_cs.get(row["class_subject_id"]))
+        card = ClassPageData(
+            **row, next_session=next_by_cs.get(row["class_subject_id"])
+        )
         if row["is_homeroom"]:
             homeroom.append(card)
         else:
             teaching.append(card)
 
-    teacher_appropriate_data =TeacherAppropriateData(homeroom_class=homeroom, teaching_class=teaching)
+    teacher_appropriate_data = TeacherAppropriateData(
+        homeroom_class=homeroom, teaching_class=teaching
+    )
 
-    return CardData(teacher_id=teacher_id, teacher_appropriate_data=teacher_appropriate_data)
+    return CardData(
+        teacher_id=teacher_id, teacher_appropriate_data=teacher_appropriate_data
+    )

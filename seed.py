@@ -89,27 +89,120 @@ SUBJECTS = {
 CODE_SUFFIX = {"history": "102"}
 
 MALE_NAMES = [
-    "ก้องภพ", "ชยพล", "ธนกฤต", "ภูมิพัฒน์", "ณัฐวุฒิ", "ปัณณวิชญ์", "กิตติพัฒน์",
-    "ศุภกร", "วรเมธ", "พีรพัฒน์", "ธีรภัทร", "ภาคิน", "อชิรวิชญ์", "ปกรณ์",
-    "สิรวิชญ์", "รัชชานนท์", "กันตพงศ์", "ณภัทร", "ธนวัฒน์", "จิรายุ",
+    "ก้องภพ",
+    "ชยพล",
+    "ธนกฤต",
+    "ภูมิพัฒน์",
+    "ณัฐวุฒิ",
+    "ปัณณวิชญ์",
+    "กิตติพัฒน์",
+    "ศุภกร",
+    "วรเมธ",
+    "พีรพัฒน์",
+    "ธีรภัทร",
+    "ภาคิน",
+    "อชิรวิชญ์",
+    "ปกรณ์",
+    "สิรวิชญ์",
+    "รัชชานนท์",
+    "กันตพงศ์",
+    "ณภัทร",
+    "ธนวัฒน์",
+    "จิรายุ",
 ]
 FEMALE_NAMES = [
-    "ณัฐธิดา", "พิมพ์ชนก", "กัญญาณัฐ", "ปุณยวีร์", "ชนัญชิดา", "ธัญชนก", "อรปรียา",
-    "ภัทรธิดา", "สุพิชญา", "วรัญญา", "ณิชาภัทร", "กานต์ธิดา", "ปภาวรินทร์",
-    "ศิริกานดา", "พิชชาพร", "รินรดา", "ชญาดา", "อัญชิสา", "มนัสนันท์", "ญาณิศา",
+    "ณัฐธิดา",
+    "พิมพ์ชนก",
+    "กัญญาณัฐ",
+    "ปุณยวีร์",
+    "ชนัญชิดา",
+    "ธัญชนก",
+    "อรปรียา",
+    "ภัทรธิดา",
+    "สุพิชญา",
+    "วรัญญา",
+    "ณิชาภัทร",
+    "กานต์ธิดา",
+    "ปภาวรินทร์",
+    "ศิริกานดา",
+    "พิชชาพร",
+    "รินรดา",
+    "ชญาดา",
+    "อัญชิสา",
+    "มนัสนันท์",
+    "ญาณิศา",
 ]
 MALE_NICKNAMES = ["พีท", "เจได", "ภูมิ", "ต้นกล้า", "ไทม์", "ปัน", "กาย", "ออโต้", "ซัน", "ฟิวส์"]
-FEMALE_NICKNAMES = ["มิ้นท์", "ข้าวหอม", "ใบเตย", "น้ำฝน", "แพรว", "ปาย", "เอิร์น", "ไข่มุก", "ฟ้า", "ขิม"]
-ADULT_MALE_NAMES = ["สมชาย", "ณัฐวุฒิ", "ประเสริฐ", "วีระพงษ์", "อนุชา", "สุรชัย", "ธนากร", "พงศกร", "ชาตรี", "วิชัย"]
-ADULT_FEMALE_NAMES = ["สุภาวดี", "สมหญิง", "วิมลรัตน์", "จันทร์เพ็ญ", "นงลักษณ์", "ปราณี", "รัตนา", "สุนิสา", "กาญจนา", "อรุณี"]
+FEMALE_NICKNAMES = [
+    "มิ้นท์",
+    "ข้าวหอม",
+    "ใบเตย",
+    "น้ำฝน",
+    "แพรว",
+    "ปาย",
+    "เอิร์น",
+    "ไข่มุก",
+    "ฟ้า",
+    "ขิม",
+]
+ADULT_MALE_NAMES = [
+    "สมชาย",
+    "ณัฐวุฒิ",
+    "ประเสริฐ",
+    "วีระพงษ์",
+    "อนุชา",
+    "สุรชัย",
+    "ธนากร",
+    "พงศกร",
+    "ชาตรี",
+    "วิชัย",
+]
+ADULT_FEMALE_NAMES = [
+    "สุภาวดี",
+    "สมหญิง",
+    "วิมลรัตน์",
+    "จันทร์เพ็ญ",
+    "นงลักษณ์",
+    "ปราณี",
+    "รัตนา",
+    "สุนิสา",
+    "กาญจนา",
+    "อรุณี",
+]
 LAST_NAMES = [
-    "ดวงดี", "ตันติวงศ์", "ปิ่นทอง", "สมบูรณ์ชัย", "แก้วมณี", "สุวรรณรัตน์", "ศรีสุข",
-    "ใจดี", "บุญมา", "วงศ์ใหญ่", "ทองคำ", "เพชรรัตน์", "ศักดิ์สิทธิ์", "รุ่งเรือง",
-    "มั่นคง", "จันทร์หอม", "พรหมวงศ์", "ชัยมงคล", "อินทร์แก้ว", "นาคสวัสดิ์",
+    "ดวงดี",
+    "ตันติวงศ์",
+    "ปิ่นทอง",
+    "สมบูรณ์ชัย",
+    "แก้วมณี",
+    "สุวรรณรัตน์",
+    "ศรีสุข",
+    "ใจดี",
+    "บุญมา",
+    "วงศ์ใหญ่",
+    "ทองคำ",
+    "เพชรรัตน์",
+    "ศักดิ์สิทธิ์",
+    "รุ่งเรือง",
+    "มั่นคง",
+    "จันทร์หอม",
+    "พรหมวงศ์",
+    "ชัยมงคล",
+    "อินทร์แก้ว",
+    "นาคสวัสดิ์",
 ]
 TABLES = [
-    "attendance", "attendance_session", "timetable", "class_subject", "enrollment",
-    "student_guardian", "guardian", "student", "classroom", "subject", "teacher",
+    "attendance",
+    "attendance_session",
+    "timetable",
+    "class_subject",
+    "enrollment",
+    "student_guardian",
+    "guardian",
+    "student",
+    "classroom",
+    "subject",
+    "teacher",
 ]
 
 
@@ -121,9 +214,17 @@ def make_teacher():
     if random.random() < 0.35:
         title, first = "นาย", random.choice(ADULT_MALE_NAMES)
     else:
-        title, first = random.choice(["นาง", "นางสาว"]), random.choice(ADULT_FEMALE_NAMES)
-    return {"id": new_id(), "title": title, "first_name": first,
-            "last_name": random.choice(LAST_NAMES), "photo": None}
+        title, first = (
+            random.choice(["นาง", "นางสาว"]),
+            random.choice(ADULT_FEMALE_NAMES),
+        )
+    return {
+        "id": new_id(),
+        "title": title,
+        "first_name": first,
+        "last_name": random.choice(LAST_NAMES),
+        "photo": None,
+    }
 
 
 def make_phone():
@@ -140,11 +241,13 @@ def build():
         for key, (prefix, name, _periods) in SUBJECTS.items():
             sid = new_id()
             subject_id[(grade, key)] = sid
-            data["subject"].append({
-                "id": sid,
-                "code": f"{prefix}1{grade}{CODE_SUFFIX.get(key, '101')}",
-                "name": f"{name} ป.{grade}",
-            })
+            data["subject"].append(
+                {
+                    "id": sid,
+                    "code": f"{prefix}1{grade}{CODE_SUFFIX.get(key, '101')}",
+                    "name": f"{name} ป.{grade}",
+                }
+            )
 
     # ---------- classrooms, each with its own homeroom teacher ----------
     rooms = []  # dicts from data["classroom"]
@@ -152,16 +255,23 @@ def build():
         for section in range(1, n_sections + 1):
             teacher = make_teacher()
             data["teacher"].append(teacher)
-            room = {"id": new_id(), "homeroom_teacher_id": teacher["id"], "grade": grade,
-                    "section": section, "academic_year": ACADEMIC_YEAR,
-                    "room": f"{grade}0{section}"}
+            room = {
+                "id": new_id(),
+                "homeroom_teacher_id": teacher["id"],
+                "grade": grade,
+                "section": section,
+                "academic_year": ACADEMIC_YEAR,
+                "room": f"{grade}0{section}",
+            }
             data["classroom"].append(room)
             rooms.append(room)
 
     # ---------- homeroom subjects: shared among the grade's homeroom teachers ----------
     teacher_for = {}  # (room id, key) -> teacher id
     for grade in SECTIONS_PER_GRADE:
-        teacher_for.update(assign_homeroom_subjects([r for r in rooms if r["grade"] == grade]))
+        teacher_for.update(
+            assign_homeroom_subjects([r for r in rooms if r["grade"] == grade])
+        )
 
     # ---------- specialists: one subject each, rooms split evenly between them ----------
     for key in SPECIALIST_SUBJECTS:
@@ -170,15 +280,23 @@ def build():
         teachers = [make_teacher() for _ in range(n_teachers)]
         data["teacher"].extend(teachers)
         for i, room in enumerate(rooms):
-            teacher_for[(room["id"], key)] = teachers[i * n_teachers // len(rooms)]["id"]
+            teacher_for[(room["id"], key)] = teachers[i * n_teachers // len(rooms)][
+                "id"
+            ]
 
     # ---------- class subjects ----------
-    lessons_by_room = defaultdict(list)  # room id -> [(class_subject row, periods, key)]
+    lessons_by_room = defaultdict(
+        list
+    )  # room id -> [(class_subject row, periods, key)]
     for room in rooms:
         for key, (_prefix, _name, periods) in SUBJECTS.items():
-            cs = {"id": new_id(), "classroom_id": room["id"],
-                  "subject_id": subject_id[(room["grade"], key)],
-                  "teacher_id": teacher_for[(room["id"], key)], "term": TERM}
+            cs = {
+                "id": new_id(),
+                "classroom_id": room["id"],
+                "subject_id": subject_id[(room["grade"], key)],
+                "teacher_id": teacher_for[(room["id"], key)],
+                "term": TERM,
+            }
             data["class_subject"].append(cs)
             lessons_by_room[room["id"]].append((cs, periods, key))
 
@@ -191,7 +309,9 @@ def build():
     for grade, n_sections in SECTIONS_PER_GRADE.items():
         seq = 1
         for section in range(1, n_sections + 1):
-            room = next(r for r in rooms if r["grade"] == grade and r["section"] == section)
+            room = next(
+                r for r in rooms if r["grade"] == grade and r["section"] == section
+            )
             students = []
             for _ in range(random.randint(*STUDENTS_PER_ROOM)):
                 students.append(make_student(grade, seq))
@@ -205,16 +325,24 @@ def build():
     # ---------- students who start missing school in the last 1-2 weeks ----------
     at_risk = {}  # student id -> (first bad day, status weights from then on)
     for room in rooms:
-        for e in random.sample(enrollments_in[room["id"]], random.randint(*AT_RISK_PER_ROOM)):
+        for e in random.sample(
+            enrollments_in[room["id"]], random.randint(*AT_RISK_PER_ROOM)
+        ):
             late, absent = random.choice([(30, 10), (10, 30), (20, 20)])
-            at_risk[e["student_id"]] = (school_days[-random.choice([5, 10])],
-                                        [100 - late - absent - 3, late, absent, 2, 1])
+            at_risk[e["student_id"]] = (
+                school_days[-random.choice([5, 10])],
+                [100 - late - absent - 3, late, absent, 2, 1],
+            )
 
     # ---------- transfers: out mid-term, in recently ----------
     transfer_rooms = random.sample(rooms, TRANSFER_ROOMS * 2)
     for room in transfer_rooms[:TRANSFER_ROOMS]:
-        regulars = [e for e in enrollments_in[room["id"]] if e["student_id"] not in at_risk]
-        random.choice(regulars)["end_date"] = school_days[-random.randint(*TRANSFER_OUT_DAYS_AGO)]
+        regulars = [
+            e for e in enrollments_in[room["id"]] if e["student_id"] not in at_risk
+        ]
+        random.choice(regulars)["end_date"] = school_days[
+            -random.randint(*TRANSFER_OUT_DAYS_AGO)
+        ]
     for room in transfer_rooms[TRANSFER_ROOMS:]:
         grade = room["grade"]
         student = make_student(grade, next_seq[grade])
@@ -246,8 +374,12 @@ def make_student(grade, seq):
 def enroll(data, enrollments_in, student, room, number, start):
     data["student"].append(student)
     enrollment = {
-        "id": new_id(), "student_id": student["id"], "classroom_id": room["id"],
-        "student_in_class_number": number, "start_date": start, "end_date": None,
+        "id": new_id(),
+        "student_id": student["id"],
+        "classroom_id": room["id"],
+        "student_in_class_number": number,
+        "start_date": start,
+        "end_date": None,
     }
     data["enrollment"].append(enrollment)
     enrollments_in[room["id"]].append(enrollment)
@@ -281,7 +413,9 @@ def assign_homeroom_subjects(grade_rooms, attempts=200):
             teacher_for[(room["id"], key)] = teacher_id
             load[teacher_id] += SUBJECTS[key][2]
 
-        if all(MIN_LOAD <= load[r["homeroom_teacher_id"]] <= MAX_LOAD for r in grade_rooms):
+        if all(
+            MIN_LOAD <= load[r["homeroom_teacher_id"]] <= MAX_LOAD for r in grade_rooms
+        ):
             return teacher_for
     raise RuntimeError("could not balance homeroom teacher loads")
 
@@ -292,11 +426,22 @@ def add_guardians(data, student):
     random.shuffle(parents)
     count = 2 if random.random() < 0.4 else 1
     for i, (relation, title, names) in enumerate(parents[:count]):
-        guardian = {"id": new_id(), "title": title, "first_name": random.choice(names),
-                    "last_name": last, "phone": make_phone() if random.random() < 0.85 else None}
+        guardian = {
+            "id": new_id(),
+            "title": title,
+            "first_name": random.choice(names),
+            "last_name": last,
+            "phone": make_phone() if random.random() < 0.85 else None,
+        }
         data["guardian"].append(guardian)
-        data["student_guardian"].append({"student_id": student["id"], "guardian_id": guardian["id"],
-                                         "relation": relation, "is_primary": i == 0})
+        data["student_guardian"].append(
+            {
+                "student_id": student["id"],
+                "guardian_id": guardian["id"],
+                "relation": relation,
+                "is_primary": i == 0,
+            }
+        )
 
 
 def build_timetable(rooms, lessons_by_room, attempts=200):
@@ -337,7 +482,10 @@ def bipartite_match(options):
 def match_periods(queue, teacher_busy):
     """Assign each period to its own slot where its teacher is free."""
     return bipartite_match(
-        [[s for s in SLOTS if s not in teacher_busy[cs["teacher_id"]]] for cs, _key in queue]
+        [
+            [s for s in SLOTS if s not in teacher_busy[cs["teacher_id"]]]
+            for cs, _key in queue
+        ]
     )
 
 
@@ -364,10 +512,18 @@ def place_room(room, lessons, teacher_busy, tries=30):
     rows = []
     for cs, (day, period), key in placed:
         start, end = PERIODS[period]
-        rows.append({"id": new_id(), "class_subject_id": cs["id"], "day_of_the_week": day,
-                     "start_time": start, "end_time": end,
-                     "room": "สนาม" if key == "pe" else room["room"],
-                     "_teacher_id": cs["teacher_id"], "_classroom_id": room["id"]})
+        rows.append(
+            {
+                "id": new_id(),
+                "class_subject_id": cs["id"],
+                "day_of_the_week": day,
+                "start_time": start,
+                "end_time": end,
+                "room": "สนาม" if key == "pe" else room["room"],
+                "_teacher_id": cs["teacher_id"],
+                "_classroom_id": room["id"],
+            }
+        )
     return rows
 
 
@@ -380,8 +536,20 @@ def last_school_days(n):
     return sorted(days)
 
 
-NORMAL_WEIGHTS = [96, 1.5, 0.5, 1.5, 0.5]  # present, late, absent, sick leave, personal leave
-STATUSES = [Status.present, Status.late, Status.absent, Status.sick_leave, Status.personal_leave]
+NORMAL_WEIGHTS = [
+    96,
+    1.5,
+    0.5,
+    1.5,
+    0.5,
+]  # present, late, absent, sick leave, personal leave
+STATUSES = [
+    Status.present,
+    Status.late,
+    Status.absent,
+    Status.sick_leave,
+    Status.personal_leave,
+]
 
 
 def daily_statuses(e, school_days, at_risk):
@@ -415,9 +583,16 @@ def build_attendance(data, school_days, at_risk):
         for slot in data["timetable"]:
             if slot["day_of_the_week"] != day.isoweekday():
                 continue
-            recorded = datetime.combine(day, slot["end_time"], TZ) - timedelta(minutes=random.randint(0, 20))
-            session = {"id": new_id(), "timetable_id": slot["id"], "teacher_id": slot["_teacher_id"],
-                       "date": day, "recorded_at": recorded}
+            recorded = datetime.combine(day, slot["end_time"], TZ) - timedelta(
+                minutes=random.randint(0, 20)
+            )
+            session = {
+                "id": new_id(),
+                "timetable_id": slot["id"],
+                "teacher_id": slot["_teacher_id"],
+                "date": day,
+                "recorded_at": recorded,
+            }
             data["attendance_session"].append(session)
             for e in enrollments_in[slot["_classroom_id"]]:
                 student_id = e["student_id"]
@@ -426,15 +601,31 @@ def build_attendance(data, school_days, at_risk):
                     continue
                 if status == Status.late and slot["start_time"] != first_period:
                     status = Status.present
-                data["attendance"].append({
-                    "id": new_id(), "session_id": session["id"], "student_id": student_id,
-                    "status": status, "note": "ไข้หวัด" if status == Status.sick_leave else None,
-                    "updated_at": recorded,
-                })
+                data["attendance"].append(
+                    {
+                        "id": new_id(),
+                        "session_id": session["id"],
+                        "student_id": student_id,
+                        "status": status,
+                        "note": "ไข้หวัด" if status == Status.sick_leave else None,
+                        "updated_at": recorded,
+                    }
+                )
 
 
-MODELS = [Teacher, Subject, Classroom, Student, Guardian, StudentGuardian, Enrollment,
-          ClassSubject, Timetable, AttendanceSession, Attendance]
+MODELS = [
+    Teacher,
+    Subject,
+    Classroom,
+    Student,
+    Guardian,
+    StudentGuardian,
+    Enrollment,
+    ClassSubject,
+    Timetable,
+    AttendanceSession,
+    Attendance,
+]
 
 
 async def main():
@@ -448,7 +639,7 @@ async def main():
         for model in MODELS:  # parents before children
             rows = data[model.__tablename__]
             for i in range(0, len(rows), 5000):
-                await session.exec(insert(model), params=rows[i:i + 5000])
+                await session.exec(insert(model), params=rows[i : i + 5000])
         await session.commit()
 
     for model in MODELS:

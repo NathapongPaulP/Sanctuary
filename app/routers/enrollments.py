@@ -9,6 +9,7 @@ from app.schema import EnrollmentRead, EnrollmentCreate
 
 router = APIRouter(prefix="/enrollments", tags=["enrollments"])
 
+
 @router.get("", response_model=list[EnrollmentRead])
 async def get_students_in_classroom(
     grade: int | None = None,
@@ -28,6 +29,7 @@ async def get_students_in_classroom(
         query = query.where(Classroom.section == section)
     result = await session.exec(query)
     return result.all()
+
 
 @router.post("", response_model=list[EnrollmentRead], status_code=201)
 async def create_enrollments(

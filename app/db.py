@@ -47,7 +47,10 @@ class Teacher(SQLModel, table=True):
 
     homeroom_classrooms: list["Classroom"] = Relationship(back_populates="teacher")
     class_subjects: list["ClassSubject"] = Relationship(back_populates="teacher")
-    attendance_sessions: list["AttendanceSession"] = Relationship(back_populates="teacher")
+    attendance_sessions: list["AttendanceSession"] = Relationship(
+        back_populates="teacher"
+    )
+    follow_up_notes: list["FollowUpNote"] = Relationship(back_populates="teacher")
 
 
 class Student(SQLModel, table=True):
@@ -64,6 +67,7 @@ class Student(SQLModel, table=True):
     enrollments: list["Enrollment"] = Relationship(back_populates="student")
     guardian_links: list["StudentGuardian"] = Relationship(back_populates="student")
     attendances: list["Attendance"] = Relationship(back_populates="student")
+    follow_up_notes: list["FollowUpNote"] = Relationship(back_populates="student")
 
 
 class Guardian(SQLModel, table=True):
@@ -112,7 +116,9 @@ class Classroom(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("grade", "section", "academic_year"),)
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    homeroom_teacher_id: uuid.UUID = Field(foreign_key="teacher.id", ondelete="RESTRICT")
+    homeroom_teacher_id: uuid.UUID = Field(
+        foreign_key="teacher.id", ondelete="RESTRICT"
+    )
     grade: int
     section: int
     academic_year: int
@@ -164,14 +170,18 @@ class Timetable(SQLModel, table=True):
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    class_subject_id: uuid.UUID = Field(foreign_key="class_subject.id", ondelete="CASCADE")
+    class_subject_id: uuid.UUID = Field(
+        foreign_key="class_subject.id", ondelete="CASCADE"
+    )
     day_of_the_week: int
     start_time: time
     end_time: time
     room: str | None = Field(default=None, max_length=10)
 
     class_subject: ClassSubject = Relationship(back_populates="timetables")
-    attendance_sessions: list["AttendanceSession"] = Relationship(back_populates="timetable")
+    attendance_sessions: list["AttendanceSession"] = Relationship(
+        back_populates="timetable"
+    )
 
 
 # ---------- Attendance ----------
@@ -200,10 +210,14 @@ class Attendance(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("session_id", "student_id"),)
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    session_id: uuid.UUID = Field(foreign_key="attendance_session.id", ondelete="CASCADE")
+    session_id: uuid.UUID = Field(
+        foreign_key="attendance_session.id", ondelete="CASCADE"
+    )
     student_id: str = Field(foreign_key="student.id", ondelete="CASCADE", max_length=10)
     status: Status = Field(
-        sa_type=Enum(Status, name="status", values_callable=lambda e: [m.value for m in e])
+        sa_type=Enum(
+            Status, name="status", values_callable=lambda e: [m.value for m in e]
+        )
     )
     note: str | None = None
     updated_at: datetime | None = Field(
@@ -216,16 +230,35 @@ class Attendance(SQLModel, table=True):
     session: AttendanceSession = Relationship(back_populates="attendances")
     student: Student = Relationship(back_populates="attendances")
 
-# ---------- Wating to be sorted ----------
+
+# ---------- Follow-up ----------
 
 
+class FollowUpNote(SQLModel, table=True):
+    __tablename__ = "follow_up_note"
 
-# ---------- Wating to be sorted ----------
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    student_id: str = Field(foreign_key="student.id", ondelete="CASCADE", max_length=10)
+    teacher_id: uuid.UUID = Field(foreign_key="teacher.id", ondelete="RESTRICT")
+    action_date: date
+    note: str
+    created_at: datetime | None = Field(
+        default=None,
+        sa_column=Column(
+            DateTime(timezone=True), nullable=False, server_default=func.now()
+        ),
+    )
+
+    student: Student = Relationship(back_populates="follow_up_notes")
+    teacher: Teacher = Relationship(back_populates="follow_up_notes")
+
 
 # ---------- Engine & session ----------
 
 engine = create_async_engine(settings.DATABASE_URL)
-async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session_maker = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
