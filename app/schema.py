@@ -1,7 +1,7 @@
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
-from app.db import Sex
-from datetime import date, time
+from app.db import Sex, AssignmentStatus
+from datetime import date, datetime, time
 
 
 class StudentBase(BaseModel):
@@ -122,6 +122,51 @@ class TimeTableCreate(TimeTableBase):
 
 
 class TimeTableRead(TimeTableBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+
+
+class AssignmentBase(BaseModel):
+    class_subject_id: UUID
+    title: str
+    description: str | None = None
+    max_score: float = 10.0
+    due_date: date
+
+
+class AssignmentCreate(AssignmentBase):
+    pass
+
+
+class AssignmentRead(AssignmentBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    created_at: datetime
+
+
+class StudentAssignmentBase(BaseModel):
+    assignment_id: UUID
+    student_id: str
+    status: AssignmentStatus = AssignmentStatus.pending
+    score: float | None = None
+    submitted_at: datetime | None = None
+    teacher_comment: str | None = None
+
+
+class StudentAssignmentCreate(StudentAssignmentBase):
+    pass
+
+
+class StudentAssignmentUpdate(BaseModel):
+    status: AssignmentStatus | None = None
+    score: float | None = None
+    submitted_at: datetime | None = None
+    teacher_comment: str | None = None
+
+
+class StudentAssignmentRead(StudentAssignmentBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import (
+    assignments,
     class_card,
     class_subjects,
     teachers,
@@ -32,3 +33,5 @@ app.include_router(subjects.router)
 app.include_router(class_subjects.router)
 app.include_router(time_tables.router)
 app.include_router(class_card.router)
+app.include_router(assignments.router)
+app.include_router(assignments.student_assignment_router)
