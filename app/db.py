@@ -33,6 +33,12 @@ class Status(str, enum.Enum):
     personal_leave = "ลากิจ"
 
 
+class AssignmentStatus(str, enum.Enum):
+    pending = "ค้างส่ง"
+    submitted = "ส่งแล้ว"
+    graded = "ตรวจแล้ว"
+
+
 # ---------- People ----------
 
 
@@ -68,6 +74,9 @@ class Student(SQLModel, table=True):
     guardian_links: list["StudentGuardian"] = Relationship(back_populates="student")
     attendances: list["Attendance"] = Relationship(back_populates="student")
     follow_up_notes: list["FollowUpNote"] = Relationship(back_populates="student")
+    student_assignments: list["StudentAssignment"] = Relationship(
+        back_populates="student"
+    )
 
 
 class Guardian(SQLModel, table=True):
@@ -160,6 +169,7 @@ class ClassSubject(SQLModel, table=True):
     subject: Subject = Relationship(back_populates="class_subjects")
     teacher: Teacher = Relationship(back_populates="class_subjects")
     timetables: list["Timetable"] = Relationship(back_populates="class_subject")
+    assignments: list["Assignment"] = Relationship(back_populates="class_subject")
 
 
 class Timetable(SQLModel, table=True):
@@ -251,6 +261,60 @@ class FollowUpNote(SQLModel, table=True):
 
     student: Student = Relationship(back_populates="follow_up_notes")
     teacher: Teacher = Relationship(back_populates="follow_up_notes")
+
+
+# ---------- Assignments ----------
+
+
+class Assignment(SQLModel, table=True):
+    __tablename__ = "assignment"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    class_subject_id: uuid.UUID = Field(
+        foreign_key="class_subject.id", ondelete="CASCADE"
+    )
+    title: str = Field(max_length=100)
+    description: str | None = None
+    max_score: float = Field(default=10.0)
+    due_date: date
+    created_at: datetime | None = Field(
+        default=None,
+        sa_column=Column(
+            DateTime(timezone=True), nullable=False, server_default=func.now()
+        ),
+    )
+
+    class_subject: ClassSubject = Relationship(back_populates="assignments")
+    student_assignments: list["StudentAssignment"] = Relationship(
+        back_populates="assignment"
+    )
+
+
+class StudentAssignment(SQLModel, table=True):
+    __tablename__ = "student_assignment"
+    __table_args__ = (UniqueConstraint("assignment_id", "student_id"),)
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    assignment_id: uuid.UUID = Field(
+        foreign_key="assignment.id", ondelete="CASCADE"
+    )
+    student_id: str = Field(
+        foreign_key="student.id", ondelete="CASCADE", max_length=10
+    )
+    status: AssignmentStatus = Field(
+        default=AssignmentStatus.pending,
+        sa_type=Enum(
+            AssignmentStatus,
+            name="assignment_status",
+            values_callable=lambda e: [m.value for m in e],
+        ),
+    )
+    score: float | None = None
+    submitted_at: datetime | None = None
+    teacher_comment: str | None = None
+
+    assignment: Assignment = Relationship(back_populates="student_assignments")
+    student: Student = Relationship(back_populates="student_assignments")
 
 
 # ---------- Engine & session ----------
