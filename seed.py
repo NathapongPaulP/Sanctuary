@@ -26,6 +26,8 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import insert, text
 
 from app.db import (
+    Assignment,
+    AssignmentStatus,
     Attendance,
     AttendanceSession,
     Classroom,
@@ -36,6 +38,7 @@ from app.db import (
     Sex,
     Status,
     Student,
+    StudentAssignment,
     StudentGuardian,
     Subject,
     Teacher,
@@ -202,6 +205,8 @@ FOLLOW_UP_NOTES = [
     "เยี่ยมบ้านนักเรียน",
 ]
 TABLES = [
+    "student_assignment",
+    "assignment",
     "follow_up_note",
     "attendance",
     "attendance_session",
@@ -376,7 +381,90 @@ def build():
             add_follow_up_notes(
                 data, student_id, homeroom_of[student_id], risk_from, school_days
             )
+
+    # ---------- assignments & student submissions ----------
+    build_assignments(data, school_days, enrollments_in)
+
     return data
+
+
+ASSIGNMENT_TEMPLATES = [
+    ("ใบงานที่ 1 — การบวกและลบ", 10.0, 18),
+    ("ใบงานที่ 2 — การคูณและการหาร", 10.0, 14),
+    ("แบบทดสอบย่อย ครั้งที่ 1", 20.0, 10),
+    ("ใบงานที่ 6 — บัญญัติไตรยางศ์", 20.0, 5),
+    ("ใบงานที่ 7 — การบวกลบเศษส่วน", 20.0, 0),
+]
+
+
+def build_assignments(data, school_days, enrollments_in):
+    now = datetime.now(TZ)
+    for cs in data["class_subject"]:
+        room_id = cs["classroom_id"]
+        enrolled_students = enrollments_in.get(room_id, [])
+        if not enrolled_students:
+            continue
+
+        sample_tasks = random.sample(ASSIGNMENT_TEMPLATES, random.randint(2, 4))
+        for title, max_score, days_ago in sample_tasks:
+            due = school_days[-days_ago] if days_ago < len(school_days) else school_days[0]
+            created = datetime.combine(due - timedelta(days=5), time(9, 0), TZ)
+            aid = new_id()
+            data["assignment"].append(
+                {
+                    "id": aid,
+                    "class_subject_id": cs["id"],
+                    "title": title,
+                    "description": f"คำสั่ง: ให้นักเรียนทำแบบฝึกหัดเรื่อง {title} ให้เรียบร้อย",
+                    "max_score": max_score,
+                    "due_date": due,
+                    "created_at": min(created, now),
+                }
+            )
+
+            for e in enrolled_students:
+                sid = e["student_id"]
+                r = random.random()
+                if days_ago <= 2:
+                    if r < 0.20:
+                        status = AssignmentStatus.pending
+                        score = None
+                        submitted_at = None
+                    elif r < 0.60:
+                        status = AssignmentStatus.submitted
+                        score = None
+                        submitted_at = min(datetime.combine(due, time(14, 0), TZ), now)
+                    else:
+                        status = AssignmentStatus.graded
+                        score = round(random.uniform(0.6 * max_score, max_score), 1)
+                        submitted_at = min(datetime.combine(due, time(11, 0), TZ), now)
+                else:
+                    if r < 0.08:
+                        status = AssignmentStatus.pending
+                        score = None
+                        submitted_at = None
+                    else:
+                        status = AssignmentStatus.graded
+                        score = round(random.uniform(0.65 * max_score, max_score), 1)
+                        submitted_at = datetime.combine(
+                            due - timedelta(days=1), time(15, 30), TZ
+                        )
+
+                data["student_assignment"].append(
+                    {
+                        "id": new_id(),
+                        "assignment_id": aid,
+                        "student_id": sid,
+                        "status": status,
+                        "score": score,
+                        "submitted_at": submitted_at,
+                        "teacher_comment": (
+                            "ทำงานเรียบร้อยดีมาก"
+                            if score and score >= 0.8 * max_score
+                            else None
+                        ),
+                    }
+                )
 
 
 def add_follow_up_notes(data, student_id, teacher_id, risk_from, school_days):
@@ -671,6 +759,8 @@ MODELS = [
     AttendanceSession,
     Attendance,
     FollowUpNote,
+    Assignment,
+    StudentAssignment,
 ]
 
 
