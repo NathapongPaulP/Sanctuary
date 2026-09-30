@@ -59,13 +59,13 @@ class ClassroomCreate(ClassroomBase):
 
 
 class EnrollmentBase(BaseModel):
+    student_id: str
     student_in_class_number: int = Field(ge=1, description="เลขที่ของนักเรียนในห้อง")
     start_date: date = Field(default_factory=date.today, description="วันที่เริ่มเข้าเรียน")
     end_date: date | None = None
 
 
 class EnrollmentCreate(EnrollmentBase):
-    student_id: str
     classroom_id: UUID
 
 
@@ -73,7 +73,6 @@ class EnrollmentRead(EnrollmentBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    student_id: str
     classroom_id: UUID
     student_id: str
 
@@ -144,12 +143,14 @@ class ClassPageData(BaseModel):
     """
 
     class_subject_id: UUID
+    classroom_id: UUID
     grade: int
     section: int
     academic_year: int
     number_of_students: int
     next_session: NextSession | None = None
     subject: str
+    students_to_follow_up: int = 0
 
 
 class TeacherAppropriateData(BaseModel):

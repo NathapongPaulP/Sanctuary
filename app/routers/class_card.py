@@ -1,7 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import func, select, or_
+from sqlmodel import func, select, or_, and_, distinct
 from app.db import (
     get_async_session,
     Classroom,
@@ -9,10 +9,13 @@ from app.db import (
     ClassSubject,
     Subject,
     Timetable,
+    Attendance,
+    AttendanceSession,
+    Status
 )
 from app.schema import NextSession, ClassPageData, TeacherAppropriateData, CardData
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from app.config import current_year_and_term
 
@@ -44,9 +47,34 @@ async def get_class_page_data(
         .subquery()
     )
 
+    flagged = (
+        select(Enrollment.classroom_id, Attendance.student_id)
+        .select_from(Attendance)
+        .join(AttendanceSession, AttendanceSession.id == Attendance.session_id)
+        .join(Enrollment, Enrollment.student_id == Attendance.student_id)
+        .where(
+            and_(
+                Attendance.status.in_([Status.late, Status.absent]),
+                AttendanceSession.date >= today - timedelta(days=14),
+                Enrollment.start_date <= today,
+                or_(Enrollment.end_date.is_(None), Enrollment.end_date >= today),
+            )
+        )
+        .group_by(Enrollment.classroom_id, Attendance.student_id)
+        .having(func.count(distinct(AttendanceSession.date)) >= 3)
+        .subquery()
+    )
+
+    follow_up = (
+        select(flagged.c.classroom_id, func.count("*").label("students_to_follow_up"))
+        .group_by(flagged.c.classroom_id)
+        .subquery()
+    )
+
     stmt = (
         select(
             ClassSubject.id.label("class_subject_id"),
+            Classroom.id.label("classroom_id"),
             Classroom.grade,
             Classroom.section,
             Classroom.academic_year,
@@ -55,6 +83,9 @@ async def get_class_page_data(
             ),
             Subject.name.label("subject"),
             (Classroom.homeroom_teacher_id == teacher_id).label("is_homeroom"),
+            func.coalesce(follow_up.c.students_to_follow_up, 0).label(
+                "students_to_follow_up"
+            ),
         )
         .select_from(ClassSubject)
         .join(Classroom, Classroom.id == ClassSubject.classroom_id)
@@ -62,6 +93,7 @@ async def get_class_page_data(
         .outerjoin(
             number_of_students_sq, number_of_students_sq.c.classroom_id == Classroom.id
         )
+        .outerjoin(follow_up, follow_up.c.classroom_id == Classroom.id)
         .where(ClassSubject.teacher_id == teacher_id)
         .where(Classroom.academic_year == current_academic_year)
         .where(ClassSubject.term == current_term)
@@ -92,19 +124,19 @@ async def get_class_page_data(
             and minutes_away(nxt) < 24 * 60,
         )
 
-    homeroom = []
-    teaching = []
+    homerooms = []
+    teachings = []
     for row in rows:
         card = ClassPageData(
             **row, next_session=next_by_cs.get(row["class_subject_id"])
         )
         if row["is_homeroom"]:
-            homeroom.append(card)
+            homerooms.append(card)
         else:
-            teaching.append(card)
+            teachings.append(card)
 
     teacher_appropriate_data = TeacherAppropriateData(
-        homeroom_class=homeroom, teaching_class=teaching
+        homeroom_class=homerooms, teaching_class=teachings
     )
 
     return CardData(

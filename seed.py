@@ -31,6 +31,7 @@ from app.db import (
     Classroom,
     ClassSubject,
     Enrollment,
+    FollowUpNote,
     Guardian,
     Sex,
     Status,
@@ -191,7 +192,17 @@ LAST_NAMES = [
     "อินทร์แก้ว",
     "นาคสวัสดิ์",
 ]
+FOLLOW_UP_NOTES = [
+    "โทรคุยกับผู้ปกครองแล้ว ผู้ปกครองรับทราบ",
+    "คุยกับนักเรียน รับปากว่าจะมาให้ทัน",
+    "นัดผู้ปกครองมาพบที่โรงเรียน",
+    "ส่งข้อความแจ้งผู้ปกครองทางไลน์",
+    "ส่งจดหมายแจ้งผู้ปกครอง",
+    "ปรึกษาครูแนะแนวแล้ว",
+    "เยี่ยมบ้านนักเรียน",
+]
 TABLES = [
+    "follow_up_note",
     "attendance",
     "attendance_session",
     "timetable",
@@ -353,7 +364,41 @@ def build():
 
     # ---------- attendance ----------
     build_attendance(data, school_days, at_risk)
+
+    # ---------- follow-up notes for about half of the students who stand out ----------
+    homeroom_of = {
+        e["student_id"]: room["homeroom_teacher_id"]
+        for room in rooms
+        for e in enrollments_in[room["id"]]
+    }
+    for student_id, (risk_from, _weights) in at_risk.items():
+        if random.random() < 0.5:
+            add_follow_up_notes(
+                data, student_id, homeroom_of[student_id], risk_from, school_days
+            )
     return data
+
+
+def add_follow_up_notes(data, student_id, teacher_id, risk_from, school_days):
+    """1-2 notes on school days after the student started missing, in date order."""
+    days = [d for d in school_days if d >= risk_from]
+    now = datetime.now(TZ)
+    for day in sorted(random.sample(days, random.randint(1, 2))):
+        written = datetime.combine(
+            day + timedelta(days=random.randint(0, 2)),
+            time(random.randint(15, 19), random.randint(0, 59)),
+            TZ,
+        )
+        data["follow_up_note"].append(
+            {
+                "id": new_id(),
+                "student_id": student_id,
+                "teacher_id": teacher_id,
+                "action_date": day,
+                "note": random.choice(FOLLOW_UP_NOTES),
+                "created_at": min(written, now),
+            }
+        )
 
 
 def make_student(grade, seq):
@@ -625,6 +670,7 @@ MODELS = [
     Timetable,
     AttendanceSession,
     Attendance,
+    FollowUpNote,
 ]
 
 

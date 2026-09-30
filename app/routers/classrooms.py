@@ -4,16 +4,22 @@ from sqlmodel import select
 from sqlalchemy.orm import selectinload
 from app.db import Classroom, Teacher, get_async_session
 from app.schema import ClassroomRead, ClassroomCreate
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 router = APIRouter(prefix="/classrooms", tags=["classrooms"])
 
 
 @router.get("", response_model=list[ClassroomRead])
 async def get_classrooms(
+    classroom_id: UUID | None = None,
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.exec(select(Classroom))
+    query = select(Classroom)
+
+    if classroom_id is not None:
+        query = query.where(Classroom.id == classroom_id)
+
+    result = await session.exec(query)
     return result.all()
 
 
